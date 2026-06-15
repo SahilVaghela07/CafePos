@@ -347,3 +347,76 @@ tr:hover td {
   background-color: rgba(200, 63, 63, 0.15);
   color: #ff5252;
 }
+
+/* =========================================================================
+   8. POS TERMINAL RESPONSIVE GRID LAYOUT
+   ========================================================================= */
+.pos-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px 300px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.pos-product-section {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--border-color);
+}
+
+.pos-cart-section {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.pos-payment-section {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: #16161a;
+  overflow-y: auto;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1200px) {
+  .pos-main-grid {
+    grid-template-columns: 1fr 340px;
+    height: auto;
+    overflow-y: auto;
+  }
+  
+  .pos-payment-section {
+    grid-column: span 2;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+  }
+}
+
+@media (max-width: 850px) {
+  .pos-main-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow-y: auto;
+  }
+  
+  .pos-product-section {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    max-height: 60vh;
+  }
+  
+  .pos-cart-section {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    max-height: 60vh;
+  }
+  
+  .pos-payment-section {
+    grid-column: span 1;
+  }
+}

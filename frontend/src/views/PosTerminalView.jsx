@@ -350,12 +350,12 @@ const PosTerminalView = ({ user, onLogout }) => {
       </header>
 
       {/* Primary POS Grid */}
-      <div style={styles.mainGrid}>
+      <div className="pos-main-grid">
         
         {/* ==========================================
             1. PRODUCTS SECTION (LEFT PANEL)
            ========================================== */}
-        <section style={styles.productSection}>
+        <section className="pos-product-section">
           <div style={styles.searchBarWrapper}>
             <Search size={18} style={styles.searchIcon} />
             <input 
@@ -415,7 +415,7 @@ const PosTerminalView = ({ user, onLogout }) => {
         {/* ==========================================
             2. CART SECTION (CENTER PANEL)
            ========================================== */}
-        <section style={styles.cartSection}>
+        <section className="pos-cart-section">
           <div style={styles.cartHeader}>
             <ShoppingBag size={20} />
             <h2>Order Cart</h2>
@@ -496,7 +496,7 @@ const PosTerminalView = ({ user, onLogout }) => {
         {/* ==========================================
             3. PAYMENT SECTION (RIGHT PANEL)
            ========================================== */}
-        <section style={styles.paymentSection}>
+        <section className="pos-payment-section">
           <div style={styles.paymentHeader}>
             <CreditCard size={20} />
             <h2>Payment Method</h2>
