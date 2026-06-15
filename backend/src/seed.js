@@ -14,8 +14,23 @@ const Table = require('./models/Table');
 const Promotion = require('./models/Promotion');
 const Customer = require('./models/Customer');
 
+const mysql = require('mysql2/promise');
+
 const seedDatabase = async () => {
   try {
+    // Auto-create MySQL database schema if it doesn't exist yet
+    if (process.env.DB_DIALECT === 'mysql') {
+      const connection = await mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || ''
+      });
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || 'CafePOS'}\`;`);
+      await connection.end();
+      console.log(`[Seed] Ensured MySQL database "${process.env.DB_NAME || 'CafePOS'}" exists.`);
+    }
+
     // 1. Sync database (forces creation of database file and drops old tables to start fresh)
     await sequelize.sync({ force: true });
     console.log('[Seed] Database schemas forced/synced successfully.');

@@ -63,6 +63,20 @@ const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
+    // Auto-create MySQL database schema if it doesn't exist yet
+    if (process.env.DB_DIALECT === 'mysql') {
+      const mysql = require('mysql2/promise');
+      const connection = await mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || ''
+      });
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || 'CafePOS'}\`;`);
+      await connection.end();
+      console.log(`[Database Connection] Ensured MySQL database "${process.env.DB_NAME || 'CafePOS'}" exists.`);
+    }
+
     // Authenticate database connection
     await sequelize.authenticate();
     console.log('[Database Connection] Connected successfully to SQL database.');
