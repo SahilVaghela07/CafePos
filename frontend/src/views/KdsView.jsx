@@ -93,20 +93,84 @@ const KdsView = () => {
     }
   };
 
-  // 4. Counts for header stats
-  const toCookCount = orders.filter(o => o.kdsStatus === 'To Cook').length;
-  const preparingCount = orders.filter(o => o.kdsStatus === 'Preparing').length;
-  const completedCount = orders.filter(o => o.kdsStatus === 'Completed').length;
+  // 4. Grouped tickets for columns and stats
+  const toCookOrders = filteredOrders.filter(o => o.kdsStatus === 'To Cook');
+  const preparingOrders = filteredOrders.filter(o => o.kdsStatus === 'Preparing');
+  const completedOrders = filteredOrders.filter(o => o.kdsStatus === 'Completed');
 
-  // 5. Apply category filter
-  const filteredOrders = orders.filter(order => {
-    if (activeCategoryFilter === 'All') return true;
-    
-    // Check if the order contains at least one item from the selected category filter
-    return order.items.some(
-      item => item.product?.categoryId === activeCategoryFilter
+  const toCookCount = toCookOrders.length;
+  const preparingCount = preparingOrders.length;
+  const completedCount = completedOrders.length;
+
+  const renderTicketCard = (order) => {
+    // Calculate elapsed time in minutes since ticket creation
+    const elapsedMin = Math.floor(
+      (new Date() - new Date(order.createdAt)) / 60000
     );
-  });
+    
+    return (
+      <div 
+        key={order.id} 
+        style={{
+          ...styles.ticketCard,
+          ...(order.kdsStatus === 'Preparing' ? styles.ticketCardPrep : {}),
+          ...(order.kdsStatus === 'Completed' ? styles.ticketCardDone : {})
+        }}
+        onClick={() => handleAdvanceStage(order)}
+      >
+        {/* Ticket Header */}
+        <div style={styles.ticketHeader}>
+          <div>
+            <span style={styles.ticketNo}>{order.orderNumber}</span>
+            <div style={styles.tableName}>Table: {order.table?.tableNumber || 'Takeaway'}</div>
+          </div>
+          <div style={styles.timeBadge}>
+            <Clock size={12} />
+            <span>{elapsedMin}m ago</span>
+          </div>
+        </div>
+
+        <div style={styles.ticketDivider}></div>
+
+        {/* Ticket Items List */}
+        <div style={styles.ticketItems}>
+          {order.items.map(item => (
+            <div 
+              key={item.id} 
+              style={{
+                ...styles.itemLine,
+                ...(item.isCompletedInKds ? styles.itemLineStrikethrough : {})
+              }}
+              onClick={(e) => handleToggleItem(e, item.id)}
+            >
+              <span style={styles.itemQty}>{item.quantity}x</span>
+              <span style={styles.itemName}>{item.product?.name}</span>
+              {item.isCompletedInKds && <span style={styles.itemCheck}>✓</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* Ticket Footer Action Label */}
+        <div style={styles.ticketFooter}>
+          {order.kdsStatus === 'To Cook' && (
+            <div style={{...styles.stageLabel, color: 'var(--color-primary)'}}>
+              <Play size={14} /> Tap to Cook
+            </div>
+          )}
+          {order.kdsStatus === 'Preparing' && (
+            <div style={{...styles.stageLabel, color: 'var(--color-warning)'}}>
+              <Flame size={14} /> Tap to Complete
+            </div>
+          )}
+          {order.kdsStatus === 'Completed' && (
+            <div style={{...styles.stageLabel, color: 'var(--color-success-light)'}}>
+              <CheckCircle size={14} /> Ready to Serve
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={styles.container}>
@@ -170,7 +234,7 @@ const KdsView = () => {
           </div>
         </aside>
 
-        {/* Tickets Grid */}
+        {/* Tickets Columns Kanban-style */}
         <main style={styles.ticketGridContainer}>
           {error && <div style={styles.errorAlert}>{error}</div>}
           
@@ -181,76 +245,60 @@ const KdsView = () => {
               <p>New orders sent from POS terminals will appear here in real-time.</p>
             </div>
           ) : (
-            <div style={styles.ticketsGrid}>
-              {filteredOrders.map(order => {
-                // Calculate elapsed time in minutes since ticket creation
-                const elapsedMin = Math.floor(
-                  (new Date() - new Date(order.createdAt)) / 60000
-                );
-                
-                return (
-                  <div 
-                    key={order.id} 
-                    style={{
-                      ...styles.ticketCard,
-                      ...(order.kdsStatus === 'Preparing' ? styles.ticketCardPrep : {}),
-                      ...(order.kdsStatus === 'Completed' ? styles.ticketCardDone : {})
-                    }}
-                    onClick={() => handleAdvanceStage(order)}
-                  >
-                    {/* Ticket Header */}
-                    <div style={styles.ticketHeader}>
-                      <div>
-                        <span style={styles.ticketNo}>{order.orderNumber}</span>
-                        <div style={styles.tableName}>Table: {order.table?.tableNumber || 'Takeaway'}</div>
-                      </div>
-                      <div style={styles.timeBadge}>
-                        <Clock size={12} />
-                        <span>{elapsedMin}m ago</span>
-                      </div>
-                    </div>
-
-                    <div style={styles.ticketDivider}></div>
-
-                    {/* Ticket Items List */}
-                    <div style={styles.ticketItems}>
-                      {order.items.map(item => (
-                        <div 
-                          key={item.id} 
-                          style={{
-                            ...styles.itemLine,
-                            ...(item.isCompletedInKds ? styles.itemLineStrikethrough : {})
-                          }}
-                          onClick={(e) => handleToggleItem(e, item.id)}
-                        >
-                          <span style={styles.itemQty}>{item.quantity}x</span>
-                          <span style={styles.itemName}>{item.product?.name}</span>
-                          {item.isCompletedInKds && <span style={styles.itemCheck}>✓</span>}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Ticket Footer Action Label */}
-                    <div style={styles.ticketFooter}>
-                      {order.kdsStatus === 'To Cook' && (
-                        <div style={{...styles.stageLabel, color: 'var(--color-primary)'}}>
-                          <Play size={14} /> Tap to Cook
-                        </div>
-                      )}
-                      {order.kdsStatus === 'Preparing' && (
-                        <div style={{...styles.stageLabel, color: 'var(--color-warning)'}}>
-                          <Flame size={14} /> Tap to Complete
-                        </div>
-                      )}
-                      {order.kdsStatus === 'Completed' && (
-                        <div style={{...styles.stageLabel, color: 'var(--color-success-light)'}}>
-                          <CheckCircle size={14} /> Ready to Serve
-                        </div>
-                      )}
-                    </div>
+            <div style={styles.kdsColumnsContainer}>
+              {/* Column 1: To Cook */}
+              <div style={styles.kdsColumn}>
+                <div style={{...styles.kdsColumnHeader, borderTop: '4px solid var(--color-primary)'}}>
+                  <div style={styles.columnHeaderTitle}>
+                    <Clock size={16} style={{color: 'var(--color-primary)'}} />
+                    <span>To Cook</span>
                   </div>
-                );
-              })}
+                  <span style={{...styles.columnCountBadge, backgroundColor: 'var(--color-primary)'}}>{toCookCount}</span>
+                </div>
+                <div style={styles.kdsColumnScroll}>
+                  {toCookOrders.length === 0 ? (
+                    <div style={styles.emptyColumnText}>No pending tickets</div>
+                  ) : (
+                    toCookOrders.map(order => renderTicketCard(order))
+                  )}
+                </div>
+              </div>
+
+              {/* Column 2: Preparing */}
+              <div style={styles.kdsColumn}>
+                <div style={{...styles.kdsColumnHeader, borderTop: '4px solid var(--color-warning)'}}>
+                  <div style={styles.columnHeaderTitle}>
+                    <Flame size={16} style={{color: 'var(--color-warning)'}} />
+                    <span>Preparing</span>
+                  </div>
+                  <span style={{...styles.columnCountBadge, backgroundColor: 'var(--color-warning)'}}>{preparingCount}</span>
+                </div>
+                <div style={styles.kdsColumnScroll}>
+                  {preparingOrders.length === 0 ? (
+                    <div style={styles.emptyColumnText}>No preparing tickets</div>
+                  ) : (
+                    preparingOrders.map(order => renderTicketCard(order))
+                  )}
+                </div>
+              </div>
+
+              {/* Column 3: Completed */}
+              <div style={styles.kdsColumn}>
+                <div style={{...styles.kdsColumnHeader, borderTop: '4px solid var(--color-success-light)'}}>
+                  <div style={styles.columnHeaderTitle}>
+                    <CheckCircle size={16} style={{color: 'var(--color-success-light)'}} />
+                    <span>Completed</span>
+                  </div>
+                  <span style={{...styles.columnCountBadge, backgroundColor: 'var(--color-success-light)'}}>{completedCount}</span>
+                </div>
+                <div style={styles.kdsColumnScroll}>
+                  {completedOrders.length === 0 ? (
+                    <div style={styles.emptyColumnText}>No completed tickets</div>
+                  ) : (
+                    completedOrders.map(order => renderTicketCard(order))
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </main>
@@ -362,8 +410,11 @@ const styles = {
   },
   ticketGridContainer: {
     flexGrow: 1,
-    padding: '2rem',
-    overflowY: 'auto'
+    padding: '1.5rem',
+    overflow: 'hidden',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column'
   },
   errorAlert: {
     backgroundColor: 'rgba(200, 63, 63, 0.15)',
@@ -483,6 +534,65 @@ const styles = {
     fontSize: '0.85rem',
     fontWeight: 600,
     textTransform: 'uppercase'
+  },
+  kdsColumnsContainer: {
+    display: 'flex',
+    gap: '1.5rem',
+    height: '100%',
+    width: '100%',
+    overflowX: 'auto',
+    alignItems: 'stretch'
+  },
+  kdsColumn: {
+    flex: 1,
+    minWidth: '280px',
+    backgroundColor: '#17171a',
+    borderRadius: '12px',
+    border: '1px solid #2e2e36',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  kdsColumnHeader: {
+    padding: '1rem 1.25rem',
+    backgroundColor: '#1e1e24',
+    borderBottom: '1px solid #2e2e36',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  columnHeaderTitle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    fontWeight: 700,
+    fontSize: '1.05rem',
+    color: '#ffffff'
+  },
+  columnCountBadge: {
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    color: '#ffffff',
+    padding: '0.15rem 0.5rem',
+    borderRadius: '12px',
+    minWidth: '24px',
+    textAlign: 'center'
+  },
+  kdsColumnScroll: {
+    flexGrow: 1,
+    overflowY: 'auto',
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    minHeight: 0
+  },
+  emptyColumnText: {
+    textAlign: 'center',
+    color: '#6f6f76',
+    fontSize: '0.9rem',
+    marginTop: '2rem',
+    fontStyle: 'italic'
   }
 };
 
