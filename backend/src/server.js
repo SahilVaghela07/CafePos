@@ -68,8 +68,7 @@ const startServer = async () => {
     console.log('[Database Connection] Connected successfully to SQL database.');
 
     // Sync models: creates tables if they don't exist
-    // alter: true updates table schemas dynamically if columns are modified
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log('[Database Sync] Database models synced successfully.');
 
     // Initialize the WebSocket KDS relay listener
