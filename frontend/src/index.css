@@ -362,7 +362,7 @@ tr:hover td {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
   border-right: 1px solid var(--border-color);
 }
 

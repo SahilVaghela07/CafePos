@@ -856,7 +856,8 @@ const styles = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
+    flexShrink: 0
   },
   searchIcon: {
     position: 'absolute',
@@ -872,7 +873,8 @@ const styles = {
     overflowX: 'auto',
     paddingBottom: '0.5rem',
     marginBottom: '1.5rem',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    flexShrink: 0
   },
   catTab: {
     padding: '0.5rem 1rem',
@@ -890,7 +892,9 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
     gap: '1rem',
-    alignContent: 'start'
+    alignContent: 'start',
+    overflowY: 'auto',
+    flexGrow: 1
   },
   productCard: {
     backgroundColor: '#1a1a1e',
