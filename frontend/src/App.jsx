@@ -28,6 +28,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('login'); // login | signup | pos | orders | customers | kds | admin-...
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState(null);
 
   // 1. URL Hash Router on boot
   // Purpose: Checks if the URL hash is #kds (e.g. accessed on a wall tablet in the kitchen).
@@ -86,8 +87,8 @@ function App() {
 
   const handleEditOrderRedirect = (order) => {
     // Purpose: Redirection callback used in OrdersHistoryView. 
-    // Redirects cashier back to the POS order taking cart screen.
-    // The POS Order terminal automatically reads the table's active draft order from database.
+    // Redirects cashier back to the POS order taking cart screen and opens checkout.
+    setEditingOrder(order);
     setCurrentView('pos');
   };
 
@@ -97,7 +98,14 @@ function App() {
       case 'login':
         return <LoginSignup onAuthSuccess={handleAuthSuccess} />;
       case 'pos':
-        return <PosTerminalView user={user} onLogout={handleLogout} />;
+        return (
+          <PosTerminalView 
+            user={user} 
+            onLogout={handleLogout} 
+            editingOrder={editingOrder}
+            clearEditingOrder={() => setEditingOrder(null)}
+          />
+        );
       case 'orders':
         return <OrdersHistoryView onEditOrder={handleEditOrderRedirect} />;
       case 'customers':

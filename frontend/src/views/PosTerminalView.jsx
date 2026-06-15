@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-const PosTerminalView = ({ user, onLogout }) => {
+const PosTerminalView = ({ user, onLogout, editingOrder, clearEditingOrder }) => {
   // POS Catalogs
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -54,6 +54,47 @@ const PosTerminalView = ({ user, onLogout }) => {
   useEffect(() => {
     fetchPOSData();
   }, []);
+
+  // Automatically load draft order and open checkout if redirected from OrdersHistoryView
+  useEffect(() => {
+    if (editingOrder) {
+      loadRedirectOrder(editingOrder);
+    }
+  }, [editingOrder]);
+
+  const loadRedirectOrder = async (order) => {
+    try {
+      // Select the table
+      setSelectedTable(order.table || { id: order.tableId, tableNumber: `Table ${order.tableId}` });
+      setShowTablePopup(false);
+      
+      // Set active draft order details
+      setCurrentOrderId(order.id);
+      
+      // Map order items to local cart structure
+      const mappedItems = order.items.map(item => ({
+        product: item.product,
+        quantity: item.quantity
+      }));
+      setCartItems(mappedItems);
+      
+      // Reset payment fields
+      setAmountPaid('');
+      setCardRef('');
+      
+      // Automatically open checkout screen!
+      setShowPaymentScreen(true);
+      
+      // Clear the editing flag in parent component to prevent re-execution
+      if (clearEditingOrder) {
+        clearEditingOrder();
+      }
+      
+      console.log('[POS Edit Redirect] Loaded draft order #', order.orderNumber, 'and opened checkout.');
+    } catch (err) {
+      console.error('Failed to load redirect editing order:', err);
+    }
+  };
 
   const fetchPOSData = async () => {
     try {
