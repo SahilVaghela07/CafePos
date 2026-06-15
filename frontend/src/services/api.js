@@ -222,6 +222,11 @@ const api = {
         method: 'POST',
         body: JSON.stringify(data) // data contains: { paymentMethod, paymentReference }
       }),
+    emailReceipt: (id, email) => 
+      request(`/orders/${id}/email-receipt`, {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      }),
     updateKdsStatus: (id, status) => 
       request(`/orders/${id}/kds-status`, {
         method: 'PUT',

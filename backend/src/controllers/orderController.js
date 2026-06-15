@@ -12,6 +12,7 @@ const Table = require('../models/Table');
 const Customer = require('../models/Customer');
 const Promotion = require('../models/Promotion');
 const { broadcastKdsUpdate } = require('../services/websocketService');
+const { sendReceiptEmail } = require('../services/emailService');
 
 // Helper: Calculate Cart totals and apply promotions
 // Purpose: Reusable function that performs the pricing calculations, applying product-level auto-promotions,
@@ -432,5 +433,47 @@ exports.toggleKdsItemStrikethrough = async (req, res) => {
   } catch (error) {
     console.error('[Order Controller] ToggleKdsItemStrikethrough Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// Handler: emailReceipt
+// Purpose: Fetches paid order details and delivers receipt HTML/text via SMTP or console logger.
+// Routed from: POST /api/orders/:id/email-receipt
+exports.emailReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    // Retrieve order details with items, products, and table info
+    const order = await Order.findByPk(id, {
+      include: [
+        { model: Table, as: 'table' },
+        { model: Customer, as: 'customer' },
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ]
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Send the receipt email
+    const result = await sendReceiptEmail(order, email);
+
+    res.status(200).json({
+      message: 'Receipt emailed successfully',
+      mode: result.mode
+    });
+  } catch (error) {
+    console.error('[Order Controller] EmailReceipt Error:', error);
+    res.status(500).json({ message: 'Failed to send receipt email' });
   }
 };

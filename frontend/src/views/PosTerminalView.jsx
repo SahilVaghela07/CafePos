@@ -864,10 +864,23 @@ const PosTerminalView = ({ user, onLogout, editingOrder, clearEditingOrder }) =>
                 <button 
                   className="btn-primary" 
                   style={{ padding: '0.5rem 1rem' }}
-                  onClick={() => {
-                    setUiSuccess(`Receipt emailed to ${emailAddress}!`);
-                    setShowReceiptModal(false);
-                    setEmailAddress('');
+                  onClick={async () => {
+                    if (!emailAddress) {
+                      setUiError('Please enter a valid email address.');
+                      return;
+                    }
+                    try {
+                      const response = await api.orders.emailReceipt(lastPaidOrder.id, emailAddress);
+                      if (response.mode === 'simulated') {
+                        setUiSuccess(`[Simulated] Receipt logged to backend console for ${emailAddress}!`);
+                      } else {
+                        setUiSuccess(`Receipt emailed successfully to ${emailAddress}!`);
+                      }
+                      setShowReceiptModal(false);
+                      setEmailAddress('');
+                    } catch (err) {
+                      setUiError('Failed to send email receipt. Please check server logs.');
+                    }
                   }}
                 >
                   <Mail size={16} />

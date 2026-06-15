@@ -40,4 +40,8 @@ router.put('/:id/kds-status', orderController.updateKdsStatus);
 // Method: PUT /api/orders/items/:itemId/kds-complete
 router.put('/items/:itemId/kds-complete', orderController.toggleKdsItemStrikethrough);
 
+// Route: Email customer receipt for a paid order
+// Method: POST /api/orders/:id/email-receipt
+router.post('/:id/email-receipt', orderController.emailReceipt);
+
 module.exports = router;
