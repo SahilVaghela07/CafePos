@@ -598,9 +598,7 @@ const PosTerminalView = ({ user, onLogout }) => {
           <div className="modal-content" style={styles.tablePopupContent}>
             <div style={styles.modalHeaderRow}>
               <h2>Dining Room Layout Selector</h2>
-              {selectedTable && (
-                <X size={20} style={{ cursor: 'pointer' }} onClick={() => setShowTablePopup(false)} />
-              )}
+              <X size={20} style={{ cursor: 'pointer' }} onClick={() => setShowTablePopup(false)} />
             </div>
 
             {/* Floor Tabs */}
