@@ -208,7 +208,7 @@ exports.createOrder = async (req, res) => {
 
     // 2. Generate a unique human-readable Order Number (e.g. #2206 based on incremental sequence)
     const lastOrder = await Order.findOne({ order: [['id', 'DESC']] });
-    const nextSequence = lastOrder ? lastOrder.id + 2200 : 2201; // Start at #2201 sequence
+    const nextSequence = lastOrder ? lastOrder.id + 2201 : 2201; // Start at #2201 sequence
     const orderNumber = `#${nextSequence}`;
 
     // 3. Create main Order record in database
