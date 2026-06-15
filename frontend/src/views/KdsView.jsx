@@ -93,6 +93,16 @@ const KdsView = () => {
     }
   };
 
+  // Apply category filter
+  const filteredOrders = orders.filter(order => {
+    if (activeCategoryFilter === 'All') return true;
+    
+    // Check if the order contains at least one item from the selected category filter
+    return order.items.some(
+      item => item.product?.categoryId === activeCategoryFilter
+    );
+  });
+
   // 4. Grouped tickets for columns and stats
   const toCookOrders = filteredOrders.filter(o => o.kdsStatus === 'To Cook');
   const preparingOrders = filteredOrders.filter(o => o.kdsStatus === 'Preparing');
