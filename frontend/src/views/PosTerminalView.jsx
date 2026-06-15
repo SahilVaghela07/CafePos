@@ -44,6 +44,7 @@ const PosTerminalView = ({ user, onLogout }) => {
   // Modals & UI States
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [lastPaidOrder, setLastPaidOrder] = useState(null);
   const [emailAddress, setEmailAddress] = useState('');
   const [uiError, setUiError] = useState('');
@@ -85,6 +86,7 @@ const PosTerminalView = ({ user, onLogout }) => {
     setCouponCode('');
     setAmountPaid('');
     setCardRef('');
+    setShowPaymentScreen(false);
 
     try {
       // Check if this table has an existing active "Draft" order to restore
@@ -311,6 +313,7 @@ const PosTerminalView = ({ user, onLogout }) => {
       setCouponCode('');
       setAmountPaid('');
       setCardRef('');
+      setShowPaymentScreen(false);
       setShowTablePopup(true); // Open table pop-up to take next order
       fetchPOSData(); // Sync active tables state
     } catch (err) {
@@ -473,122 +476,205 @@ const PosTerminalView = ({ user, onLogout }) => {
               <span>${summary.total.toFixed(2)}</span>
             </div>
           </div>
-
           {/* Cart Actions */}
           <div style={styles.cartActionsWrapper}>
-            <button 
-              style={styles.discountBtn} 
-              disabled={cartItems.length === 0}
-              onClick={() => setShowCouponModal(true)}
-            >
-              <Tag size={16} /> Discount Code
-            </button>
-            <button 
-              style={styles.sendKdsBtn} 
-              disabled={cartItems.length === 0}
-              onClick={handleSendToKitchen}
-            >
-              <Send size={16} /> Send to Kitchen
-            </button>
-          </div>
-        </section>
-
-        {/* ==========================================
-            3. PAYMENT SECTION (RIGHT PANEL)
-           ========================================== */}
-        <section className="pos-payment-section">
-          <div style={styles.paymentHeader}>
-            <CreditCard size={20} />
-            <h2>Payment Method</h2>
-          </div>
-
-          {/* Payment Toggles */}
-          <div style={styles.paymentSelector}>
-            {['Cash', 'Card', 'UPI'].map(method => (
-              <button
-                key={method}
-                style={{
-                  ...styles.payToggleBtn,
-                  ...(selectedPayment === method ? styles.payToggleActive : {})
-                }}
-                onClick={() => { setSelectedPayment(method); setAmountPaid(''); }}
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginBottom: '0.75rem' }}>
+              <button 
+                style={styles.discountBtn} 
+                disabled={cartItems.length === 0}
+                onClick={() => setShowCouponModal(true)}
               >
-                {method}
+                <Tag size={16} /> Discount Code
               </button>
-            ))}
-          </div>
-
-          {/* Dynamic Payment Details Panel */}
-          <div style={styles.paymentDetailsArea}>
-            {selectedPayment === 'Cash' && (
-              <div style={styles.paymentInputBlock}>
-                <div style={styles.payInputLabel}>Amount Received</div>
-                <div style={styles.largeValueText}>${amountPaid || '0'}</div>
-                {changeDue > 0 && (
-                  <div style={styles.changeDueRow}>
-                    <span>Change Due:</span>
-                    <span style={{ color: 'var(--color-success-light)', fontWeight: 600 }}>
-                      ${changeDue.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedPayment === 'Card' && (
-              <div style={styles.paymentInputBlock}>
-                <label style={styles.payInputLabel}>Card Transaction Reference</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter reference number"
-                  value={cardRef}
-                  onChange={(e) => setCardRef(e.target.value)}
-                  style={styles.cardRefInput}
-                />
-              </div>
-            )}
-
-            {selectedPayment === 'UPI' && (
-              <div style={styles.upiQrBlock}>
-                <div style={styles.qrCodeBox}>
-                  {/* Dynamic QR Display */}
-                  <div style={styles.qrPlaceholder}>
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=cafe@ybl%26am=${summary.total}`} 
-                      alt="UPI QR Code" 
-                      style={styles.qrImage}
-                    />
-                  </div>
-                </div>
-                <p style={styles.qrText}>Scan to Pay: <strong>${summary.total.toFixed(2)}</strong></p>
-              </div>
-            )}
-          </div>
-
-          {/* Numpad (only active for Cash payments) */}
-          <div style={{...styles.numpadGrid, opacity: selectedPayment === 'Cash' ? 1 : 0.15}}>
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '←'].map(val => (
-              <button
-                key={val}
-                disabled={selectedPayment !== 'Cash'}
-                style={styles.numBtn}
-                onClick={() => handleNumPress(val)}
+              <button 
+                style={styles.sendKdsBtn} 
+                disabled={cartItems.length === 0}
+                onClick={handleSendToKitchen}
               >
-                {val}
+                <Send size={16} /> Send to Kitchen
               </button>
-            ))}
+            </div>
+            
+            <button 
+              className="btn-primary" 
+              style={styles.goToPaymentBtn} 
+              disabled={cartItems.length === 0}
+              onClick={() => setShowPaymentScreen(true)}
+            >
+              Go to Payment <ChevronRight size={18} />
+            </button>
           </div>
-
-          {/* Process checkout */}
-          <button 
-            style={styles.checkoutSubmitBtn} 
-            disabled={cartItems.length === 0}
-            onClick={handleConfirmPayment}
-          >
-            <Check size={18} /> Process Payment
-          </button>
         </section>
       </div>
+
+      {/* ==========================================
+          MODAL: FULLSCREEN PAYMENT SCREEN
+         ========================================== */}
+      {showPaymentScreen && (
+        <div className="modal-overlay">
+          <div className="payment-screen-content">
+            
+            {/* Left Column: Order Summary Review */}
+            <div className="payment-screen-left">
+              <div className="payment-screen-header">
+                <h2>Review Seating Order</h2>
+                {selectedTable && (
+                  <span style={{
+                    backgroundColor: '#7c5dfa',
+                    color: '#ffffff',
+                    fontSize: '0.85rem',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '20px',
+                    fontWeight: 600
+                  }}>
+                    {selectedTable.tableNumber}
+                  </span>
+                )}
+              </div>
+
+              {/* Order Items List */}
+              <div className="payment-items-summary">
+                {cartItems.map(item => (
+                  <div key={item.product.id} className="payment-item-row">
+                    <span>{item.product.name} x{item.quantity}</span>
+                    <span style={{ fontWeight: 600 }}>
+                      ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary Totals */}
+              <div style={{...styles.cartSummary, width: '100%', padding: 0, borderTop: 'none'}}>
+                <div style={styles.summaryRow}>
+                  <span>Subtotal</span>
+                  <span>${summary.subtotal.toFixed(2)}</span>
+                </div>
+                {summary.discounts > 0 && (
+                  <div style={{...styles.summaryRow, color: 'var(--color-success-light)'}}>
+                    <span>Discounts {activeCoupon && `(${activeCoupon.code})`}</span>
+                    <span>-${summary.discounts.toFixed(2)}</span>
+                  </div>
+                )}
+                <div style={styles.summaryRow}>
+                  <span>Tax (5%)</span>
+                  <span>${summary.tax.toFixed(2)}</span>
+                </div>
+                <div style={{...styles.summaryRow, ...styles.totalRow, marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed #2e2e36'}}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>Total Amount</span>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>${summary.total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Back to Cart Action */}
+              <button 
+                className="btn-secondary" 
+                style={{ marginTop: 'auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.9rem' }}
+                onClick={() => setShowPaymentScreen(false)}
+              >
+                <X size={18} /> Back to Cart
+              </button>
+            </div>
+
+            {/* Right Column: Payment Methods Portal */}
+            <div className="payment-screen-right">
+              <div>
+                <div style={{...styles.paymentHeader, marginBottom: '1.5rem'}}>
+                  <CreditCard size={20} />
+                  <h2>Select Payment</h2>
+                </div>
+
+                {/* Payment Toggles */}
+                <div style={{...styles.paymentSelector, marginBottom: '1.5rem'}}>
+                  {['Cash', 'Card', 'UPI'].map(method => (
+                    <button
+                      key={method}
+                      style={{
+                        ...styles.payToggleBtn,
+                        ...(selectedPayment === method ? styles.payToggleActive : {})
+                      }}
+                      onClick={() => { setSelectedPayment(method); setAmountPaid(''); }}
+                    >
+                      {method}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Dynamic Payment Details Area */}
+                <div style={{...styles.paymentDetailsArea, marginBottom: '1.5rem'}}>
+                  {selectedPayment === 'Cash' && (
+                    <div style={styles.paymentInputBlock}>
+                      <div style={styles.payInputLabel}>Amount Received</div>
+                      <div style={styles.largeValueText}>${amountPaid || '0'}</div>
+                      {changeDue > 0 && (
+                        <div style={styles.changeDueRow}>
+                          <span>Change Due:</span>
+                          <span style={{ color: 'var(--color-success-light)', fontWeight: 600 }}>
+                            ${changeDue.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedPayment === 'Card' && (
+                    <div style={styles.paymentInputBlock}>
+                      <label style={styles.payInputLabel}>Card Transaction Reference</label>
+                      <input 
+                        type="text" 
+                        placeholder="Enter reference number"
+                        value={cardRef}
+                        onChange={(e) => setCardRef(e.target.value)}
+                        style={styles.cardRefInput}
+                      />
+                    </div>
+                  )}
+
+                  {selectedPayment === 'UPI' && (
+                    <div style={styles.upiQrBlock}>
+                      <div style={styles.qrCodeBox}>
+                        <div style={styles.qrPlaceholder}>
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=cafe@ybl%26am=${summary.total}`} 
+                            alt="UPI QR Code" 
+                            style={styles.qrImage}
+                          />
+                        </div>
+                      </div>
+                      <p style={styles.qrText}>Scan to Pay: <strong>${summary.total.toFixed(2)}</strong></p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Numpad */}
+                <div style={{...styles.numpadGrid, opacity: selectedPayment === 'Cash' ? 1 : 0.15, marginBottom: '1.5rem'}}>
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '←'].map(val => (
+                    <button
+                      key={val}
+                      disabled={selectedPayment !== 'Cash'}
+                      style={styles.numBtn}
+                      onClick={() => handleNumPress(val)}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Confirm Payment button */}
+              <button 
+                className="btn-primary" 
+                style={styles.checkoutSubmitBtn} 
+                disabled={cartItems.length === 0}
+                onClick={handleConfirmPayment}
+              >
+                <Check size={18} /> Confirm & Pay
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ==========================================
           MODAL: FLOOR PLAN & TABLE SELECTOR
@@ -1037,7 +1123,7 @@ const styles = {
   cartActionsWrapper: {
     padding: '1rem 1.5rem',
     display: 'flex',
-    gap: '0.75rem',
+    flexDirection: 'column',
     borderTop: '1px solid #2e2e36',
     backgroundColor: '#1a1a1e'
   },
@@ -1063,6 +1149,19 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.5rem'
+  },
+  goToPaymentBtn: {
+    width: '100%',
+    padding: '0.9rem',
+    backgroundColor: 'var(--color-primary)',
+    color: '#ffffff',
+    fontWeight: 700,
+    fontSize: '0.95rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    borderRadius: '8px'
   },
 
   // Payment Section

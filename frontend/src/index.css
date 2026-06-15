@@ -349,11 +349,11 @@ tr:hover td {
 }
 
 /* =========================================================================
-   8. POS TERMINAL RESPONSIVE GRID LAYOUT
+   8. POS TERMINAL RESPONSIVE GRID LAYOUT (2 COLUMNS)
    ========================================================================= */
 .pos-main-grid {
   display: grid;
-  grid-template-columns: 1fr 340px 300px;
+  grid-template-columns: 1fr 380px;
   flex-grow: 1;
   overflow: hidden;
 }
@@ -369,34 +369,74 @@ tr:hover td {
 .pos-cart-section {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
   overflow: hidden;
 }
 
-.pos-payment-section {
+/* New Fullscreen Payment Overlay Screen */
+.payment-screen-content {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  width: 90%;
+  max-width: 950px;
+  height: 85vh;
+  display: flex;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.payment-screen-left {
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background-color: #16161a;
+  flex: 1.2;
+  padding: 2rem;
+  border-right: 1px solid var(--border-color);
   overflow-y: auto;
 }
 
-/* Responsive Overrides */
-@media (max-width: 1200px) {
-  .pos-main-grid {
-    grid-template-columns: 1fr 340px;
-    height: auto;
-    overflow-y: auto;
-  }
-  
-  .pos-payment-section {
-    grid-column: span 2;
-    border-top: 1px solid var(--border-color);
-    background-color: var(--bg-secondary);
-  }
+.payment-screen-right {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 2rem;
+  background-color: #16161a;
+  overflow-y: auto;
+  justify-content: space-between;
 }
 
+.payment-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.payment-items-summary {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  background-color: var(--bg-primary);
+}
+
+.payment-item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--bg-secondary);
+  font-size: 0.9rem;
+}
+
+.payment-item-row:last-child {
+  border-bottom: none;
+}
+
+/* Responsive overrides for smaller viewports */
 @media (max-width: 850px) {
   .pos-main-grid {
     grid-template-columns: 1fr;
@@ -407,16 +447,28 @@ tr:hover td {
   .pos-product-section {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
-    max-height: 60vh;
+    max-height: 50vh;
   }
   
   .pos-cart-section {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-    max-height: 60vh;
+    max-height: 50vh;
   }
   
-  .pos-payment-section {
-    grid-column: span 1;
+  .payment-screen-content {
+    flex-direction: column;
+    height: 95vh;
+    width: 95%;
+  }
+  
+  .payment-screen-left {
+    flex: 1;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
+  }
+  
+  .payment-screen-right {
+    flex: 1.5;
+    padding: 1.5rem;
   }
 }
