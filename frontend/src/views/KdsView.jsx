@@ -460,7 +460,8 @@ const styles = {
     minHeight: '220px',
     cursor: 'pointer',
     boxShadow: 'var(--shadow-sm)',
-    transition: 'all 0.15s ease-in-out'
+    transition: 'all 0.15s ease-in-out',
+    flexShrink: 0
   },
   ticketCardPrep: {
     borderTop: '5px solid var(--color-warning)'
